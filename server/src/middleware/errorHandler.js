@@ -9,19 +9,20 @@ export function notFound(req, res) {
 export function errorHandler(err, req, res, next) {
   // Bad JSON in the request body
   if (err.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: 'Request body is not valid JSON' });
+    return res.status(400).json({ error: 'The request could not be read. Please try again.' });
   }
   // Mongoose couldn't convert an id (e.g. /api/users/abc)
   if (err.name === 'CastError') {
-    return res.status(400).json({ error: 'Invalid id' });
+    return res.status(400).json({ error: 'That item could not be found' });
   }
-  // Mongoose schema rule failed (e.g. hoursBefore > 168)
+  // Mongoose schema rule failed. Its raw message contains code field names,
+  // so send a plain message instead (controllers normally catch these first).
   if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: err.message });
+    return res.status(400).json({ error: 'Some of the values entered are not valid' });
   }
   // MongoDB unique index was violated
   if (err.code === 11000) {
-    return res.status(409).json({ error: 'Already exists' });
+    return res.status(409).json({ error: 'This already exists' });
   }
 
   const status = err.status || 500;

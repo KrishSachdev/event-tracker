@@ -48,9 +48,13 @@ async function ticketmasterGet(path, params = {}) {
   const res = await fetch(url);
 
   if (res.status === 404) return null;
-  if (res.status === 401) throw new AppError(502, 'Ticketmaster rejected the API key (check server/.env)');
-  if (res.status === 429) throw new AppError(503, 'Ticketmaster rate limit hit, try again in a moment');
-  if (!res.ok) throw new AppError(502, `Ticketmaster error (${res.status})`);
+  if (res.status === 429) throw new AppError(503, 'Too many requests right now. Please try again in a moment.');
+  if (!res.ok) {
+    // Technical details go to the server log only; users get a plain message
+    if (res.status === 401) console.error('Ticketmaster rejected the API key. Check TICKETMASTER_API_KEY in server/.env');
+    else console.error(`Ticketmaster error: HTTP ${res.status}`);
+    throw new AppError(502, 'Events are unavailable right now. Please try again later.');
+  }
 
   return res.json();
 }

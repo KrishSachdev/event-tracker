@@ -10,7 +10,7 @@ const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 // POST /api/share   body: { userId, eventId }
 export const createLink = asyncHandler(async (req, res) => {
   const body = req.body || {};
-  const userId = validateObjectId(body.userId, 'userId');
+  const userId = validateObjectId(body.userId, 'Your account');
   const eventId = validateEventId(body.eventId);
 
   const link = await createShareLink(userId, eventId);

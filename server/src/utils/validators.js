@@ -1,5 +1,7 @@
 // Input checks used by the controllers.
 // Each function returns the cleaned value, or throws a 400 error with a clear message.
+// `label` is the human-readable name shown to the user (e.g. 'Name', 'Reminder hours'),
+// never a code field name like 'reminders.hoursBefore'.
 import mongoose from 'mongoose';
 import { AppError } from './AppError.js';
 
@@ -10,60 +12,60 @@ const EVENT_ID_REGEX = /^[A-Za-z0-9_-]{1,64}$/; // Ticketmaster ids look like 'v
 const SHARE_CODE_REGEX = /^[A-Za-z0-9_-]{6,20}$/;
 
 // A non-empty string with a max length
-export function requireString(value, field, maxLength = 100) {
+export function requireString(value, label, maxLength = 100) {
   if (typeof value !== 'string' || !value.trim()) {
-    throw new AppError(400, `${field} is required`);
+    throw new AppError(400, `${label} is required`);
   }
   if (value.trim().length > maxLength) {
-    throw new AppError(400, `${field} must be at most ${maxLength} characters`);
+    throw new AppError(400, `${label} must be at most ${maxLength} characters`);
   }
   return value.trim();
 }
 
 // Same as above, but empty is allowed (returns '')
-export function optionalString(value, field, maxLength = 100) {
+export function optionalString(value, label, maxLength = 100) {
   if (value === undefined || value === null || value === '') return '';
-  return requireString(value, field, maxLength);
+  return requireString(value, label, maxLength);
 }
 
 export function validateEmail(value) {
-  const email = requireString(value, 'email', 254).toLowerCase();
-  if (!EMAIL_REGEX.test(email)) throw new AppError(400, 'email is not valid');
+  const email = requireString(value, 'Email', 254).toLowerCase();
+  if (!EMAIL_REGEX.test(email)) throw new AppError(400, 'Please enter a valid email address');
   return email;
 }
 
 export function validateMonth(value) {
-  if (!MONTH_REGEX.test(value)) throw new AppError(400, 'month must look like YYYY-MM');
+  if (!MONTH_REGEX.test(value)) throw new AppError(400, 'Month must be in the format YYYY-MM');
   return value;
 }
 
 export function validateDate(value) {
-  if (!DATE_REGEX.test(value)) throw new AppError(400, 'date must look like YYYY-MM-DD');
+  if (!DATE_REGEX.test(value)) throw new AppError(400, 'Date must be in the format YYYY-MM-DD');
   return value;
 }
 
 export function validateEventId(value) {
   if (typeof value !== 'string' || !EVENT_ID_REGEX.test(value)) {
-    throw new AppError(400, 'eventId is not valid');
+    throw new AppError(400, 'This event could not be found');
   }
   return value;
 }
 
 // Checks a MongoDB id (like a user id)
-export function validateObjectId(value, field) {
-  if (!mongoose.isValidObjectId(value)) throw new AppError(400, `${field} is not valid`);
+export function validateObjectId(value, label) {
+  if (!mongoose.isValidObjectId(value)) throw new AppError(400, `${label} could not be found. Please sign in again.`);
   return String(value);
 }
 
-export function validateBoolean(value, field) {
-  if (typeof value !== 'boolean') throw new AppError(400, `${field} must be true or false`);
+export function validateBoolean(value, label) {
+  if (typeof value !== 'boolean') throw new AppError(400, `${label} must be on or off`);
   return value;
 }
 
-export function validateIntInRange(value, field, min, max) {
+export function validateIntInRange(value, label, min, max) {
   const n = Number(value);
   if (!Number.isInteger(n) || n < min || n > max) {
-    throw new AppError(400, `${field} must be a whole number between ${min} and ${max}`);
+    throw new AppError(400, `${label} must be a whole number between ${min} and ${max}`);
   }
   return n;
 }

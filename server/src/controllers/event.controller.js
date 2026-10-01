@@ -17,13 +17,13 @@ import { AppError } from '../utils/AppError.js';
 // Checks ?category= against the allowed list
 function readCategory(value) {
   if (!value) return DEFAULT_CATEGORY;
-  if (!CATEGORIES.some((c) => c.id === value)) throw new AppError(400, 'category is not valid');
+  if (!CATEGORIES.some((c) => c.id === value)) throw new AppError(400, 'Please choose a valid category');
   return value;
 }
 
 // Reads ?city=&month=&date=&category=&userId= and fills in defaults
 function readEventQuery(query) {
-  const city = query.city ? requireString(query.city, 'city', 60) : config.defaultCity;
+  const city = query.city ? requireString(query.city, 'City', 60) : config.defaultCity;
   const date = query.date ? validateDate(query.date) : null;
 
   // If a date is given, its month wins. Otherwise use ?month= or the current month.
@@ -31,7 +31,7 @@ function readEventQuery(query) {
   if (date) month = date.slice(0, 7);
 
   const category = readCategory(query.category);
-  const userId = query.userId ? validateObjectId(query.userId, 'userId') : null;
+  const userId = query.userId ? validateObjectId(query.userId, 'Your account') : null;
 
   return { city, month, date, category, userId };
 }
@@ -60,7 +60,7 @@ export const listCategories = (req, res) => {
 // GET /api/events/:id
 export const getOneEvent = asyncHandler(async (req, res) => {
   const eventId = validateEventId(req.params.id);
-  const userId = req.query.userId ? validateObjectId(req.query.userId, 'userId') : null;
+  const userId = req.query.userId ? validateObjectId(req.query.userId, 'Your account') : null;
   const event = await getEventById(eventId, userId);
   res.json({ event });
 });
