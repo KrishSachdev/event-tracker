@@ -38,6 +38,9 @@ export const api = {
   removeRsvp: (userId, eventId) =>
     request(`/rsvps/${encodeURIComponent(eventId)}?${toQuery({ userId })}`, { method: 'DELETE' }),
 
+  // Live updates (Server-Sent Events). Returns an EventSource the caller must close.
+  openLiveStream: (userId) => new EventSource(`/api/stream?${toQuery({ userId })}`),
+
   // Friend Invite
   createShareLink: (userId, eventId) => request('/share', { method: 'POST', body: { userId, eventId } }),
 };

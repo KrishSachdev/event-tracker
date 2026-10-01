@@ -110,6 +110,9 @@ input {
   background: #fff;
 }
 
+.live-status { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.live-status.on { color: var(--success); }
+
 .notice {
   background: var(--primary-soft);
   border-radius: 8px;

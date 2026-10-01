@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from './api/client.js';
 import { useUser } from './hooks/useUser.js';
 import { useEvents } from './hooks/useEvents.js';
+import { useLiveUpdates } from './hooks/useLiveUpdates.js';
 import LoginForm from './components/LoginForm.jsx';
 import ProfilePanel from './components/ProfilePanel.jsx';
 import CitySearch from './components/CitySearch.jsx';
@@ -46,7 +47,7 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
   const [notice, setNotice] = useState('');
   const [invitedEvent, setInvitedEvent] = useState(null);
 
-  const { calendar, events, loading, error, reload } = useEvents({
+  const { calendar, events, loading, error, reload, setFriendsCount } = useEvents({
     city,
     month,
     date: selectedDate,
@@ -70,6 +71,19 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
     reload(false);
     loadInvitedEvent();
   }
+
+  // Live updates pushed by the server
+  const isLive = useLiveUpdates(user.id, {
+    // A friend clicked a share link: show the new count right away
+    onFriendsUpdated: ({ eventId, friendsAttending }) => {
+      setFriendsCount(eventId, friendsAttending);
+      setInvitedEvent((current) =>
+        current && current.id === eventId ? { ...current, friendsAttending } : current
+      );
+    },
+    // This user's RSVPs changed somewhere else (another tab, or the chat)
+    onRsvpUpdated: () => refresh(),
+  });
 
   async function handleToggleInterest(event) {
     try {
@@ -133,6 +147,10 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
       </aside>
 
       <main className="content">
+        <p className={isLive ? 'live-status on' : 'live-status'}>
+          {isLive ? '● Live updates on' : '○ Connecting to live updates...'}
+        </p>
+
         {notice && (
           <p className="notice" onClick={() => setNotice('')}>{notice} <span className="muted">(click to hide)</span></p>
         )}

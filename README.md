@@ -76,6 +76,7 @@ event-tracker/
 │       │   ├── event.service.js          Merges events with our data, builds calendar
 │       │   ├── rsvp.service.js           Add / remove RSVPs
 │       │   ├── share.service.js          Share links, click tracking, friend counts
+│       │   ├── realtime.service.js       Live updates to browsers (Server-Sent Events)
 │       │   └── user.service.js           Sign in, profile, settings
 │       ├── middleware/
 │       │   └── errorHandler.js   Turns errors into clean JSON responses
@@ -96,7 +97,8 @@ event-tracker/
         ├── api/client.js         Every backend call lives here
         ├── hooks/
         │   ├── useUser.js        Signed-in user
-        │   └── useEvents.js      Loads calendar + events, refreshes every 30s
+        │   ├── useEvents.js      Loads calendar + events
+        │   └── useLiveUpdates.js Live connection to the server
         └── components/
             ├── LoginForm.jsx
             ├── ProfilePanel.jsx  Name, city, reminder settings
@@ -167,9 +169,22 @@ Days with events are highlighted; click one to filter the list.
    - redirects to the app at `/?event=<id>`, where the event is shown under "You were invited to"
 3. **Friends attending** = number of unique visitor ids that clicked any share link for that event.
    It's calculated with one MongoDB aggregation in `share.service.js`.
-4. The frontend refreshes every 30 seconds, so the count updates on its own.
+4. The new count is pushed to every open browser instantly (see Real-time updates).
 
 The same browser clicking twice counts once. A different browser or device counts as a new friend.
+
+### Real-time updates
+The app uses **Server-Sent Events (SSE)**: each browser tab opens one long-lived connection to
+`GET /api/stream?userId=...`, and the server writes a message into it whenever something changes.
+No polling, no extra libraries (the browser's built-in `EventSource` handles reconnecting).
+
+| Message | Sent to | When |
+|---|---|---|
+| `friends-updated` `{ eventId, friendsAttending }` | everyone | a friend clicks a share link, or a link is removed |
+| `rsvp-updated` `{ eventId }` | that user's tabs | the user RSVPs or cancels (in any tab) |
+
+The server computes the new count; the frontend just puts the number on the card.
+The "● Live updates on" label shows the connection is open.
 
 ### Profile and reminder settings
 `PATCH /api/users/:id` updates name, home city, `reminders.enabled` and
@@ -192,6 +207,7 @@ These are saved settings only; nothing sends reminders yet (see Next steps).
 | POST | `/api/rsvps` | Mark interested |
 | DELETE | `/api/rsvps/:eventId` | Remove interest |
 | POST | `/api/share` | Create a Friend Invite link |
+| GET | `/api/stream` | Live updates (Server-Sent Events) |
 | GET | `/s/:code` | Open a share link (counts the click, redirects) |
 
 Errors always look like `{ "error": "message" }` with a matching status code (400, 403, 404, ...).
@@ -201,5 +217,5 @@ Errors always look like `{ "error": "message" }` with a matching status code (40
 ## 5. Next steps (not included)
 - **Real authentication** (passwords or Google login + JWT). Right now the `userId` is trusted.
 - **Sending reminders**: a scheduled job that finds RSVPs whose event is `hoursBefore` away and emails the user.
-- **Shared cache** (e.g. Redis) if you run more than one server.
+- **Shared cache and message bus** (e.g. Redis) if you run more than one server, so caches and live updates are shared.
 - **Production**: build the client (`npm run build`), serve `client/dist`, and set `CLIENT_URL` / `SERVER_URL` to real domains.

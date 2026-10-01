@@ -4,6 +4,7 @@ import { config } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { Rsvp } from '../models/Rsvp.js';
 import { ShareLink } from '../models/ShareLink.js';
+import { broadcast } from './realtime.service.js';
 
 // The full URL a user copies and sends to friends
 export function buildShareUrl(code) {
@@ -42,7 +43,11 @@ export async function recordClick(code, visitorId) {
     { $addToSet: { clickedBy: visitorId } },
     { new: true }
   );
-  return link ? link.eventId : null;
+  if (!link) return null;
+
+  // Tell every open browser the new count, so cards update instantly
+  await notifyFriendsCount(link.eventId);
+  return link.eventId;
 }
 
 // For a list of event ids, returns { eventId: friendsAttendingCount }.
@@ -61,4 +66,10 @@ export async function getFriendsAttendingCounts(eventIds) {
 
   // [{ _id: 'abc', count: 3 }] -> { abc: 3 }
   return Object.fromEntries(rows.map((row) => [row._id, row.count]));
+}
+
+// Recounts friends for one event and pushes the new number to every connected browser
+export async function notifyFriendsCount(eventId) {
+  const counts = await getFriendsAttendingCounts([eventId]);
+  broadcast('friends-updated', { eventId, friendsAttending: counts[eventId] || 0 });
 }

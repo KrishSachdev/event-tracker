@@ -4,6 +4,8 @@ import { Rsvp } from '../models/Rsvp.js';
 import { ShareLink } from '../models/ShareLink.js';
 import { fetchEventById } from './ticketmaster.service.js';
 import { requireUser } from './user.service.js';
+import { notifyFriendsCount } from './share.service.js';
+import { sendToUser } from './realtime.service.js';
 
 function toPublicRsvp(rsvp) {
   return {
@@ -33,6 +35,9 @@ export async function addRsvp(userId, eventId) {
     eventDate: event.date,
     venue: event.venue,
   });
+
+  // Update the user's other open tabs right away
+  sendToUser(userId, 'rsvp-updated', { eventId });
   return toPublicRsvp(rsvp);
 }
 
@@ -42,5 +47,9 @@ export async function removeRsvp(userId, eventId) {
   if (!deleted) throw new AppError(404, 'RSVP not found');
 
   // Sharing requires an RSVP, so their share link for this event goes too
-  await ShareLink.deleteOne({ user: userId, eventId });
+  const { deletedCount } = await ShareLink.deleteOne({ user: userId, eventId });
+
+  sendToUser(userId, 'rsvp-updated', { eventId });
+  // The link's clicks no longer count, so everyone's friends count may have changed
+  if (deletedCount > 0) await notifyFriendsCount(eventId);
 }
