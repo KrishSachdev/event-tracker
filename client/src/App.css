@@ -1,0 +1,181 @@
+/* ---------- Colors and basics ---------- */
+:root {
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --text: #1d2330;
+  --muted: #6b7280;
+  --border: #e3e6eb;
+  --primary: #2f6fed;
+  --primary-soft: #e6eefe;
+  --success: #15803d;
+  --error: #b91c1c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1, h2, h3 { margin: 0 0 8px; }
+h2 { font-size: 1.1rem; }
+
+.muted { color: var(--muted); font-size: 0.9rem; }
+.error { color: var(--error); }
+.success { color: var(--success); }
+.center { text-align: center; margin-top: 40px; }
+
+/* ---------- Page layout ---------- */
+.app { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.content { display: flex; flex-direction: column; gap: 12px; }
+
+/* Stack everything on small screens */
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ---------- Panels, forms, buttons ---------- */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.login-form { max-width: 380px; margin: 40px auto; }
+
+label { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 0.9rem; }
+label.checkbox { flex-direction: row; align-items: center; gap: 8px; }
+
+input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.btn {
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary { background: #fff; color: var(--primary); }
+.btn.active { background: var(--primary-soft); color: var(--primary); }
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+
+.city-search { display: flex; gap: 8px; }
+.city-search input { flex: 1; }
+
+.notice {
+  background: var(--primary-soft);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ---------- Calendar ---------- */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.calendar-header h2 { margin: 0; }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekday { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 4px 0; }
+
+.day {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #fafbfc;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.day:disabled { cursor: default; }
+
+/* Days that have events are highlighted */
+.day.has-events {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.day.today { border-color: var(--text); }
+.day.selected { background: var(--primary); color: #fff; }
+
+/* Small number badge showing how many events that day */
+.day .count {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+}
+
+/* ---------- Event cards ---------- */
+.event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.event-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.event-card.highlight { border: 2px solid var(--primary); max-width: 420px; }
+
+.event-card img { width: 100%; height: 140px; object-fit: cover; }
+
+.event-body { padding: 12px; }
+.event-body h3 { font-size: 1rem; }
+.meta { margin: 2px 0; color: var(--muted); font-size: 0.88rem; }
+.friends { margin: 8px 0 0; font-size: 0.9rem; }
+
+.share-url { width: 100%; margin-top: 8px; font-size: 0.8rem; }
