@@ -9,10 +9,19 @@ export const config = {
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   serverUrl: process.env.SERVER_URL || 'http://localhost:5000',
   defaultCity: process.env.DEFAULT_CITY || 'New York',
+  // Chat assistant (optional: the rest of the app works without it)
+  geminiKey: process.env.GEMINI_API_KEY || '',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-flash-latest',
 };
 
 // Stop immediately if the API key is missing, instead of failing on the first request
 if (!config.ticketmasterKey) {
   console.error('Missing TICKETMASTER_API_KEY in server/.env');
   process.exit(1);
+}
+
+// The chat is optional, so just warn
+if (!config.geminiKey || config.geminiKey === 'your_gemini_key_here') {
+  config.geminiKey = '';
+  console.warn('GEMINI_API_KEY is not set in server/.env, so the chat assistant is turned off.');
 }

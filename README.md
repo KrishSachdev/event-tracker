@@ -6,6 +6,7 @@ Find events in a city, mark the ones you're interested in, and invite friends wi
 - **Backend:** Node.js + Express. All logic, validation and calculations live here.
 - **Database:** MongoDB (users, RSVPs, share links).
 - **Events:** Ticketmaster Discovery API.
+- **Chat assistant:** Google Gemini (with tool calling), run from the server.
 
 ---
 
@@ -15,6 +16,7 @@ Find events in a city, mark the ones you're interested in, and invite friends wi
 - Node.js 18 or newer
 - MongoDB: either installed locally, or a free MongoDB Atlas cluster
 - A Ticketmaster API key
+- A Google Gemini API key (free, optional: the app runs without the chat)
 
 ### Get the Ticketmaster API key
 1. Go to https://developer.ticketmaster.com and create an account.
@@ -25,6 +27,11 @@ Free tier limits: 5000 calls per day, 5 per second. The server caches results fo
 
 > **Note:** Ticketmaster mostly lists events in the US, Canada, UK, Europe, Australia and NZ.
 > Indian cities (e.g. Mumbai) will return no events. Test with cities like `New York`, `London` or `Chicago`.
+
+### Get the Gemini API key
+1. Go to https://aistudio.google.com/apikey and sign in with a Google account.
+2. Click **Create API key** and copy it.
+3. Put it in `server/.env` as `GEMINI_API_KEY=...`.
 
 ### Get MongoDB
 - **Local:** install MongoDB Community Server and use `mongodb://127.0.0.1:27017/event-tracker`
@@ -77,6 +84,8 @@ event-tracker/
 │       │   ├── rsvp.service.js           Add / remove RSVPs
 │       │   ├── share.service.js          Share links, click tracking, friend counts
 │       │   ├── realtime.service.js       Live updates to browsers (Server-Sent Events)
+│       │   ├── chat.service.js           Talks to Gemini, runs the tool loop
+│       │   └── chatTools.js              What the assistant may do (search, RSVP, share)
 │       │   └── user.service.js           Sign in, profile, settings
 │       ├── middleware/
 │       │   └── errorHandler.js   Turns errors into clean JSON responses
@@ -104,6 +113,8 @@ event-tracker/
             ├── ProfilePanel.jsx  Name, city, reminder settings
             ├── CitySearch.jsx
             ├── CategoryFilter.jsx Category dropdown
+            ├── ChatPanel.jsx     Floating chat window
+            ├── ChatEventItem.jsx Event inside a chat reply
             ├── EventCalendar.jsx Calendar grid
             ├── EventCard.jsx     One event + Interested / Share buttons
             └── EventList.jsx
@@ -173,6 +184,25 @@ Days with events are highlighted; click one to filter the list.
 
 The same browser clicking twice counts once. A different browser or device counts as a new friend.
 
+### AI chat assistant
+Click **Ask the assistant** (bottom right) and type things like:
+- "Music events in London this weekend"
+- "RSVP to number 2" / "Share the first one"
+- "What am I interested in?"
+
+How it works (`chat.service.js`):
+1. The browser sends the message plus earlier messages to `POST /api/chat`.
+2. The server sends the conversation to Gemini, along with a list of **tools** (`chatTools.js`):
+   `search_events`, `get_my_events`, `rsvp_event`, `cancel_rsvp`, `create_share_link`.
+3. Gemini replies either with text, or with "call search_events with city=London, startDate=...".
+4. The server runs that tool using the same services and validation as the rest of the app,
+   sends the result back to Gemini, and repeats (max 5 rounds) until Gemini answers in text.
+5. The reply comes back with the events as cards. Gemini works out dates like "this weekend";
+   the server checks every value before using it.
+
+Gemini never touches MongoDB or Ticketmaster directly, and the API key stays on the server.
+RSVPs made in the chat update the main page instantly through live updates.
+
 ### Real-time updates
 The app uses **Server-Sent Events (SSE)**: each browser tab opens one long-lived connection to
 `GET /api/stream?userId=...`, and the server writes a message into it whenever something changes.
@@ -208,6 +238,7 @@ These are saved settings only; nothing sends reminders yet (see Next steps).
 | DELETE | `/api/rsvps/:eventId` | Remove interest |
 | POST | `/api/share` | Create a Friend Invite link |
 | GET | `/api/stream` | Live updates (Server-Sent Events) |
+| POST | `/api/chat` | Ask the AI assistant |
 | GET | `/s/:code` | Open a share link (counts the click, redirects) |
 
 Errors always look like `{ "error": "message" }` with a matching status code (400, 403, 404, ...).

@@ -12,6 +12,7 @@ import CategoryFilter from './components/CategoryFilter.jsx';
 import EventCalendar from './components/EventCalendar.jsx';
 import EventCard from './components/EventCard.jsx';
 import EventList from './components/EventList.jsx';
+import ChatPanel from './components/ChatPanel.jsx';
 
 // If the page was opened from a share link, the URL looks like /?event=<id>
 const invitedEventId = new URLSearchParams(window.location.search).get('event');
@@ -171,6 +172,9 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
           onShare={handleShare}
         />
       </main>
+
+      {/* RSVPs made in the chat reach the page through live updates */}
+      <ChatPanel userId={user.id} />
     </div>
   );
 }

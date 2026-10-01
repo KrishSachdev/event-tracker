@@ -6,6 +6,7 @@ import { fetchEventById } from './ticketmaster.service.js';
 import { requireUser } from './user.service.js';
 import { notifyFriendsCount } from './share.service.js';
 import { sendToUser } from './realtime.service.js';
+import { todayString } from '../utils/dates.js';
 
 function toPublicRsvp(rsvp) {
   return {
@@ -52,4 +53,10 @@ export async function removeRsvp(userId, eventId) {
   sendToUser(userId, 'rsvp-updated', { eventId });
   // The link's clicks no longer count, so everyone's friends count may have changed
   if (deletedCount > 0) await notifyFriendsCount(eventId);
+}
+
+// The user's upcoming RSVPs, soonest first
+export async function listUpcomingRsvps(userId) {
+  const rsvps = await Rsvp.find({ user: userId, eventDate: { $gte: todayString() } }).sort({ eventDate: 1 });
+  return rsvps.map(toPublicRsvp);
 }

@@ -23,6 +23,31 @@ export function daysInMonth(month) {
   return new Date(Date.UTC(year, mon, 0)).getUTCDate();
 }
 
+// Add days to a date: addDays('2026-10-30', 3) -> '2026-11-02'
+export function addDays(dateStr, days) {
+  const [year, mon, day] = dateStr.split('-').map(Number);
+  const d = new Date(Date.UTC(year, mon - 1, day + days));
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+// Last day of the month a date is in: '2026-10-03' -> '2026-10-31'
+export function endOfMonth(dateStr) {
+  const month = dateStr.slice(0, 7);
+  return `${month}-${pad(daysInMonth(month))}`;
+}
+
+// Every month a date range touches: ('2026-10-30', '2026-11-02') -> ['2026-10', '2026-11']
+export function monthsBetween(startDate, endDate) {
+  const months = [];
+  let month = startDate.slice(0, 7);
+  const lastMonth = endDate.slice(0, 7);
+  while (month <= lastMonth) {
+    months.push(month);
+    month = shiftMonth(month, 1);
+  }
+  return months;
+}
+
 // Move a month forward or back: shiftMonth('2026-01', -1) -> '2025-12'
 export function shiftMonth(month, delta) {
   const [year, mon] = month.split('-').map(Number);

@@ -5,6 +5,7 @@ import userRoutes from './user.routes.js';
 import rsvpRoutes from './rsvp.routes.js';
 import shareRoutes from './share.routes.js';
 import streamRoutes from './stream.routes.js';
+import chatRoutes from './chat.routes.js';
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.use('/users', userRoutes);   // /api/users...
 router.use('/rsvps', rsvpRoutes);   // /api/rsvps...
 router.use('/share', shareRoutes);  // /api/share
 router.use('/stream', streamRoutes); // /api/stream (live updates)
+router.use('/chat', chatRoutes);     // /api/chat (AI assistant)
 
 export default router;

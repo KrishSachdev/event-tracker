@@ -3,13 +3,13 @@ import { Rsvp } from '../models/Rsvp.js';
 import { ShareLink } from '../models/ShareLink.js';
 import { fetchMonthEvents, fetchEventById } from './ticketmaster.service.js';
 import { buildShareUrl, getFriendsAttendingCounts } from './share.service.js';
-import { buildMonthGrid, formatMonthLabel, shiftMonth } from '../utils/dates.js';
+import { buildMonthGrid, formatMonthLabel, shiftMonth, monthsBetween } from '../utils/dates.js';
 
 // Adds to each event:
 //   friendsAttending - how many friends clicked share links for it
 //   isInterested     - did THIS user RSVP?
 //   shareUrl         - this user's share link, if they made one
-async function attachUserData(events, userId) {
+export async function attachUserData(events, userId) {
   if (events.length === 0) return [];
 
   const eventIds = events.map((event) => event.id);
@@ -70,4 +70,21 @@ export async function getEventById(eventId, userId) {
   const event = await fetchEventById(eventId);
   const [withUserData] = await attachUserData([event], userId);
   return withUserData;
+}
+
+// Events between two dates (can cross months), optionally matching a keyword.
+// Used by the chat assistant. Dates are 'YYYY-MM-DD' and already validated.
+export async function searchEvents({ city, startDate, endDate, category, keyword }) {
+  const events = [];
+  for (const month of monthsBetween(startDate, endDate)) {
+    events.push(...(await fetchMonthEvents(city, month, category)));
+  }
+
+  const word = keyword ? keyword.toLowerCase() : '';
+
+  return events
+    .filter((event) => event.date >= startDate && event.date <= endDate)
+    .filter((event) => !word || event.title.toLowerCase().includes(word) || event.venue.toLowerCase().includes(word))
+    // Earliest first ('2026-10-03' + '19:30:00' sorts correctly as text)
+    .sort((a, b) => `${a.date} ${a.time || ''}`.localeCompare(`${b.date} ${b.time || ''}`));
 }

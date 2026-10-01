@@ -41,6 +41,9 @@ export const api = {
   // Live updates (Server-Sent Events). Returns an EventSource the caller must close.
   openLiveStream: (userId) => new EventSource(`/api/stream?${toQuery({ userId })}`),
 
+  // AI assistant
+  chat: (userId, message, history) => request('/chat', { method: 'POST', body: { userId, message, history } }),
+
   // Friend Invite
   createShareLink: (userId, eventId) => request('/share', { method: 'POST', body: { userId, eventId } }),
 };
