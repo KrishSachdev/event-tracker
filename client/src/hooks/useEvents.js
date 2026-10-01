@@ -5,7 +5,7 @@ import { api } from '../api/client.js';
 
 const REFRESH_EVERY_MS = 30 * 1000;
 
-export function useEvents({ city, month, date, userId }) {
+export function useEvents({ city, month, date, category, userId }) {
   const [calendar, setCalendar] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,8 +19,8 @@ export function useEvents({ city, month, date, userId }) {
       try {
         // Ask for both at the same time
         const [calendarData, eventData] = await Promise.all([
-          api.getCalendar(city, month),
-          api.getEvents(city, month, date, userId),
+          api.getCalendar(city, month, category),
+          api.getEvents(city, month, date, category, userId),
         ]);
         setCalendar(calendarData);
         setEvents(eventData.events);
@@ -30,7 +30,7 @@ export function useEvents({ city, month, date, userId }) {
         setLoading(false);
       }
     },
-    [city, month, date, userId]
+    [city, month, date, category, userId]
   );
 
   // Load now, then every 30 seconds. Stop the timer when inputs change or the page closes.

@@ -101,6 +101,7 @@ event-tracker/
             ├── LoginForm.jsx
             ├── ProfilePanel.jsx  Name, city, reminder settings
             ├── CitySearch.jsx
+            ├── CategoryFilter.jsx Category dropdown
             ├── EventCalendar.jsx Calendar grid
             ├── EventCard.jsx     One event + Interested / Share buttons
             └── EventList.jsx
@@ -122,9 +123,10 @@ There are no passwords in this version. `POST /api/users` with name + email retu
 user for that email, or creates a new one. The frontend saves only the user's id in `localStorage`.
 
 ### Event feed
-`GET /api/events?city=London&month=2026-10&date=2026-10-03&userId=...`
+`GET /api/events?city=London&month=2026-10&date=2026-10-03&category=music&userId=...`
 
 1. `ticketmaster.service` fetches all events in that city for the month (cached for 5 minutes).
+   Ticketmaster returns 200 events per page, so the server asks for up to 5 pages (Ticketmaster's limit is 1000 events).
 2. Each event is reduced to: id, title, venue, date, time, image, ticket link.
    The server also creates the display text (`Sat, 3 Oct 2026`, `7:30 PM`).
 3. `event.service` adds our data to each event:
@@ -132,6 +134,15 @@ user for that email, or creates a new one. The frontend saves only the user's id
    - `shareUrl`: this user's share link, if they made one
    - `friendsAttending`: the friend count (see below)
 4. If `date` is given, only that day's events are returned.
+
+### Category filter
+`GET /api/events/categories` returns the choices: All events, Music, Sports, Arts & Theatre, Film,
+Attractions & other. The user picks one from the dropdown, and it is sent as `?category=` to the
+event and calendar endpoints. The server checks it against the list and passes the matching
+Ticketmaster segment (e.g. `Music`) as a filter.
+
+Why it matters: in big cities, daily attraction tickets (e.g. London Eye) can fill the 1000-event limit
+within a few days. Picking Music, Sports or Arts & Theatre shows real events across the whole month.
 
 ### Event calendar
 `GET /api/events/calendar?city=London&month=2026-10`
@@ -173,6 +184,7 @@ These are saved settings only; nothing sends reminders yet (see Next steps).
 |---|---|---|
 | GET | `/api/events` | Events for a city + month (or one day) |
 | GET | `/api/events/calendar` | Calendar grid with event counts |
+| GET | `/api/events/categories` | Category choices for the dropdown |
 | GET | `/api/events/:id` | One event |
 | POST | `/api/users` | Sign in / sign up |
 | GET | `/api/users/:id` | Get profile |

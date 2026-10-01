@@ -37,15 +37,15 @@ async function attachUserData(events, userId) {
 }
 
 // Events for a month, or for one day if `date` is given
-export async function getEvents({ city, month, date, userId }) {
-  const monthEvents = await fetchMonthEvents(city, month);
+export async function getEvents({ city, month, date, category, userId }) {
+  const monthEvents = await fetchMonthEvents(city, month, category);
   const events = date ? monthEvents.filter((event) => event.date === date) : monthEvents;
   return attachUserData(events, userId);
 }
 
 // Everything the calendar needs: the grid, the label, and prev/next month
-export async function getCalendar({ city, month }) {
-  const events = await fetchMonthEvents(city, month);
+export async function getCalendar({ city, month, category }) {
+  const events = await fetchMonthEvents(city, month, category);
 
   // Count events per day: { '2026-10-03': 4, ... }
   const countsByDate = {};
@@ -56,6 +56,7 @@ export async function getCalendar({ city, month }) {
   return {
     city,
     month,
+    category,
     monthLabel: formatMonthLabel(month),
     prevMonth: shiftMonth(month, -1),
     nextMonth: shiftMonth(month, 1),

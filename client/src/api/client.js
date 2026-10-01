@@ -22,8 +22,10 @@ function toQuery(params) {
 
 export const api = {
   // Events
-  getCalendar: (city, month) => request(`/events/calendar?${toQuery({ city, month })}`),
-  getEvents: (city, month, date, userId) => request(`/events?${toQuery({ city, month, date, userId })}`),
+  getCategories: () => request('/events/categories'),
+  getCalendar: (city, month, category) => request(`/events/calendar?${toQuery({ city, month, category })}`),
+  getEvents: (city, month, date, category, userId) =>
+    request(`/events?${toQuery({ city, month, date, category, userId })}`),
   getEvent: (eventId, userId) => request(`/events/${encodeURIComponent(eventId)}?${toQuery({ userId })}`),
 
   // Users

@@ -7,6 +7,7 @@ import { useEvents } from './hooks/useEvents.js';
 import LoginForm from './components/LoginForm.jsx';
 import ProfilePanel from './components/ProfilePanel.jsx';
 import CitySearch from './components/CitySearch.jsx';
+import CategoryFilter from './components/CategoryFilter.jsx';
 import EventCalendar from './components/EventCalendar.jsx';
 import EventCard from './components/EventCard.jsx';
 import EventList from './components/EventList.jsx';
@@ -37,9 +38,10 @@ export default function App() {
 }
 
 function EventsPage({ user, onSaveProfile, onLogout }) {
-  // '' city and null month mean "let the server pick the default"
+  // '' and null mean "let the server pick the default"
   const [city, setCity] = useState(user.city || '');
   const [month, setMonth] = useState(null);
+  const [category, setCategory] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [notice, setNotice] = useState('');
   const [invitedEvent, setInvitedEvent] = useState(null);
@@ -48,6 +50,7 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
     city,
     month,
     date: selectedDate,
+    category,
     userId: user.id,
   });
 
@@ -105,6 +108,11 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
     setSelectedDate(null);
   }
 
+  function handleChangeCategory(newCategory) {
+    setCategory(newCategory);
+    setSelectedDate(null);
+  }
+
   function handleChangeMonth(newMonth) {
     setMonth(newMonth);
     setSelectedDate(null);
@@ -114,6 +122,7 @@ function EventsPage({ user, onSaveProfile, onLogout }) {
     <div className="layout">
       <aside className="sidebar">
         <CitySearch city={city || calendar?.city || ''} onSearch={handleSearch} />
+        <CategoryFilter value={category || calendar?.category || ''} onChange={handleChangeCategory} />
         <EventCalendar
           calendar={calendar}
           selectedDate={selectedDate}

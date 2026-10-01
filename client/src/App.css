@@ -100,6 +100,16 @@ input {
 .city-search { display: flex; gap: 8px; }
 .city-search input { flex: 1; }
 
+.category-filter { flex-direction: row; align-items: center; gap: 8px; margin: 0; }
+.category-filter select {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
 .notice {
   background: var(--primary-soft);
   border-radius: 8px;
